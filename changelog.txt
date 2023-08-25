@@ -1,0 +1,2 @@
+- Initial version of mod
+- Supports Dark Souls, MK, and GTA
