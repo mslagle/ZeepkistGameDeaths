@@ -34,7 +34,7 @@ jobs:
 
       - name: Build mod file
         run: |
-          Compress-Archive ./Zeepkist.RandomTrack/bin/Release/net472/package/* mod.zip
+          Compress-Archive ./Zeepkist.Deaths/bin/Release/net472/package/* mod.zip
 
       - name:  Upload to mod.io
         uses: nickelc/upload-to-modio@v2.1.0
