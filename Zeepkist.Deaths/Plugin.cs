@@ -35,7 +35,7 @@ namespace Zeepkist.Deaths
 
         private void Death_SettingChanged(object sender, EventArgs e)
         {
-            Debug.Log($"Mod status changed.  New status = ${Death.Value}");
+            Logger.LogInfo($"Mod status changed.  New status = ${Death.Value}");
             DeathManager.deaths = Enum.Parse<DeathsEnum>(Plugin.Death.Value);
         }
 

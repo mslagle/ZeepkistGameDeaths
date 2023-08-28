@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BepInEx.Logging;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,6 +17,8 @@ namespace Zeepkist.Deaths.Deaths
 
         static Texture2D texture = null;
         static AudioClip audioclip = null;
+
+        static ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("DeathResourceManager");
 
         public static Texture2D GetDeathTexture(DeathsEnum deathsEnum)
         {
@@ -67,7 +70,7 @@ namespace Zeepkist.Deaths.Deaths
 
         private static Texture2D LoadTexture(string path)
         {
-            Debug.Log($"Loading a texture from path ${path}");
+            Logger.LogInfo($"Loading a texture from path {path}");
 
             string dllFile = System.Reflection.Assembly.GetAssembly(typeof(DeathResourceManager)).Location;
             string dllDirectory = Path.GetDirectoryName(dllFile);
@@ -82,7 +85,7 @@ namespace Zeepkist.Deaths.Deaths
 
         public static async Task<AudioClip> GetAudioClip(string path)
         {
-            Debug.Log($"Creating an audio clip from path ${path}");
+            Logger.LogInfo($"Creating an audio clip from path {path}");
 
             string dllFile = System.Reflection.Assembly.GetAssembly(typeof(DeathResourceManager)).Location;
             string dllDirectory = Path.GetDirectoryName(dllFile);
@@ -98,7 +101,10 @@ namespace Zeepkist.Deaths.Deaths
                 {
                     while (!uwr.isDone) await Task.Delay(5);
 
-                    if (uwr.isNetworkError || uwr.isHttpError) Debug.Log($"{uwr.error}");
+                    if (uwr.result == UnityWebRequest.Result.ConnectionError)
+                    {
+                        Logger.LogError($"{uwr.error}");
+                    }
                     else
                     {
                         clip = DownloadHandlerAudioClip.GetContent(uwr);
@@ -106,7 +112,7 @@ namespace Zeepkist.Deaths.Deaths
                 }
                 catch (Exception err)
                 {
-                    Debug.Log($"{err.Message}, {err.StackTrace}");
+                    Logger.LogInfo($"{err.Message}, {err.StackTrace}");
                 }
             }
 

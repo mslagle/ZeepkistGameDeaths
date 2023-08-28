@@ -1,2 +1,2 @@
-- Supports Dark Souls, MK, and GTA
+- Fix mod logging
 - Getting automatic builds working

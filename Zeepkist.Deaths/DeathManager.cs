@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine;
 using ZeepSDK.Racing;
 using Zeepkist.Deaths.Deaths;
+using BepInEx.Logging;
 
 namespace Zeepkist.Deaths
 {
@@ -22,6 +23,8 @@ namespace Zeepkist.Deaths
         public static AudioClip yourDeadAudioClip = null;
         public static Texture2D yourDeadTexture = null;
 
+        public static ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("DeathManager");
+
         public static void Initialize()
         {
             RacingApi.CrossedFinishLine += RacingApi_CrossedFinishLine;
@@ -32,14 +35,14 @@ namespace Zeepkist.Deaths
 
         private static void RacingApi_CrossedFinishLine(float time)
         {
-            Debug.Log($"Detected crossing finish line, setting isDead = false and isFinished = true");
+            Logger.LogInfo($"Detected crossing finish line, setting isDead = false and isFinished = true");
             isDead = false;
             isFinished = true;
         }
 
         private static void SceneManager_activeSceneChanged(Scene arg0, Scene arg1)
         {
-            Debug.Log($"Detected scene change, setting isDead = false");
+            Logger.LogInfo($"Detected scene change, setting isDead = false");
             isDead = false;
             isFinished = false;
         }
@@ -48,18 +51,18 @@ namespace Zeepkist.Deaths
         {
             if (deaths == DeathsEnum.Disabled)
             {
-                Debug.Log($"Detected crash, but mod is disabled.  Not setting isDead.");
+                Logger.LogInfo($"Detected crash, but mod is disabled.  Not setting isDead.");
                 return;
             }
 
             if (isFinished)
             {
-                Debug.Log($"Detected crash, but isFinished is true.  Not setting isDead");
+                Logger.LogInfo($"Detected crash, but isFinished is true.  Not setting isDead");
                 isFinished = false;
                 return;
             }
 
-            Debug.Log($"Detected crash, playing youdied.mp3 and setting isDead = true");
+            Logger.LogInfo($"Detected crash, playing youdied.mp3 and setting isDead = true");
             isDead = true;
             isFinished = false;
 
@@ -69,18 +72,18 @@ namespace Zeepkist.Deaths
                 AudioManager audioManager = DeathManager.GetOrCreateAudioManager();
                 audioManager.Play(new AudioItemScriptableObject() { Clip = clip, BaseVolume = 1f, Loop = false });
 
-                Debug.Log($"Successfully played youdied.mp3");
+                Logger.LogInfo($"Successfully played youdied.mp3");
             }
             catch (Exception ex)
             {
-                Debug.LogError(ex);
+                Logger.LogError(ex);
             }
 
         }
 
         private static void RacingApi_PlayerSpawned()
         {
-            Debug.Log($"Detected player spawn, setting isDead = false");
+            Logger.LogInfo($"Detected player spawn, setting isDead = false");
             isDead = false;
             isFinished = false;
         }
@@ -118,7 +121,7 @@ namespace Zeepkist.Deaths
         {
             if (AudioManager.Instance == null)
             {
-                Debug.Log($"AudioManager is null, creating a new instance");
+                Logger.LogInfo($"AudioManager is null, creating a new instance");
 
                 AudioManager audioManager = new AudioManager();
                 AudioManager.Instance = audioManager;
