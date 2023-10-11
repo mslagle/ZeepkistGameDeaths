@@ -9,8 +9,11 @@ namespace Zeepkist.Deaths.Deaths
     public enum DeathsEnum
     {
         Disabled,
+        Random,
         DarkSouls,
         GTA,
-        MortalKombat
+        MortalKombat,
+        Scary,
+        Custom
     }
 }
