@@ -7,65 +7,81 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Networking;
+using Random = UnityEngine.Random;
 
 namespace Zeepkist.Deaths.Deaths
 {
-    internal static class DeathResourceManager
+    public static class DeathResourceManager
     {
-        static DeathsEnum LastDeathTexture = DeathsEnum.Disabled;
-        static DeathsEnum LastDeathAudio = DeathsEnum.Disabled;
-
-        static Texture2D texture = null;
-        static AudioClip audioclip = null;
-
+        static List<DeathResource> deathResources = new List<DeathResource>();
         static ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("DeathResourceManager");
 
-        public static Texture2D GetDeathTexture(DeathsEnum deathsEnum)
+        public static async Task PreLoadDeaths()
         {
-            if (deathsEnum == LastDeathTexture && texture != null)
-            {
-                return texture;
-            }
+            string dllFile = System.Reflection.Assembly.GetAssembly(typeof(DeathResourceManager)).Location;
+            string dllDirectory = Path.GetDirectoryName(dllFile);
 
-            LastDeathTexture = deathsEnum;
-            if (deathsEnum == DeathsEnum.DarkSouls)
-            {
-                texture = LoadTexture("darksouls.png");
-            }
-            if (deathsEnum == DeathsEnum.GTA)
-            {
-                texture = LoadTexture("gta.png");
-            }
-            if (deathsEnum == DeathsEnum.MortalKombat)
-            {
-                texture = LoadTexture("mk.png");
-            }
+            Logger.LogInfo($"Preloading death resources at {dllDirectory}");
 
-            return texture;
+            foreach (DeathsEnum death in Enum.GetValues(typeof(DeathsEnum)))
+            {
+                Logger.LogInfo($"Working death type {death}");
+                if (death == DeathsEnum.Disabled || death == DeathsEnum.Random)
+                {
+                    Logger.LogInfo($"Skipping loading any resources for type {death}");
+                    continue;
+                }
+
+                var matchingFiles = Directory.GetFiles(dllDirectory).Where(x => Path.GetFileNameWithoutExtension(x).ToLower().IndexOf(death.ToString().ToLower()) >= 0 
+                    && Path.GetExtension(x) == ".mp3");                
+                Logger.LogInfo($"Found {matchingFiles.Count()} number of matches for this death");
+
+                foreach (var file in matchingFiles)
+                {
+                    string mp3FileName = Path.GetFileName(file);
+                    string textureFileName = Path.GetFileName(file.Replace(".mp3", ".png"));
+                    Logger.LogInfo($"Loading resources for {death} at {mp3FileName} and {textureFileName}");
+
+                    try
+                    {
+                        Texture2D texture = LoadTexture(file.Replace(".mp3", ".png"));
+                        AudioClip audioClip = await GetAudioClip(file);
+
+                        deathResources.Add(new DeathResource(death, texture, audioClip, file));
+                    } 
+                    catch (Exception e) 
+                    {
+                        Logger.LogError(e);
+                    }
+                }
+            }
         }
 
-        public static async Task<AudioClip> GetDeathAudio(DeathsEnum deathsEnum)
+        public static DeathResource GetRandomDeath(DeathsEnum deathType)
         {
-            if (deathsEnum == LastDeathAudio && audioclip != null)
+            Logger.LogInfo($"Getting a resource for death type {deathType}");
+            List<DeathResource> availableResources = new List<DeathResource>();
+
+            if (deathType == DeathsEnum.Random)
             {
-                return audioclip;
+                availableResources = deathResources;
+            } 
+            else
+            {
+                availableResources = deathResources.Where(x => x.DeathType == deathType).ToList();
             }
 
-            LastDeathAudio = deathsEnum;
-            if (deathsEnum == DeathsEnum.DarkSouls)
+            if (availableResources.Count == 0) 
             {
-                audioclip = await GetAudioClip("darksouls.mp3");
-            }
-            if (deathsEnum == DeathsEnum.GTA)
-            {
-                audioclip = await GetAudioClip("gta.mp3");
-            }
-            if (deathsEnum == DeathsEnum.MortalKombat)
-            {
-                audioclip = await GetAudioClip("mk.mp3");
+                Logger.LogWarning("No resources could be found for this death type!");
+                return null;
             }
 
-            return audioclip;
+            int random = Random.Range(0, availableResources.Count);
+            DeathResource found = availableResources[random];
+
+            Logger.LogInfo($"Returning random resource with path of ${found.FilePath}");
+            return found;
         }
 
         private static Texture2D LoadTexture(string path)
@@ -87,12 +103,8 @@ namespace Zeepkist.Deaths.Deaths
         {
             Logger.LogInfo($"Creating an audio clip from path {path}");
 
-            string dllFile = System.Reflection.Assembly.GetAssembly(typeof(DeathResourceManager)).Location;
-            string dllDirectory = Path.GetDirectoryName(dllFile);
-            string audioPath = Path.Combine(dllDirectory, path);
-
             AudioClip clip = null;
-            using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(audioPath, AudioType.MPEG))
+            using (UnityWebRequest uwr = UnityWebRequestMultimedia.GetAudioClip(path, AudioType.MPEG))
             {
                 uwr.SendWebRequest();
 
@@ -119,4 +131,22 @@ namespace Zeepkist.Deaths.Deaths
             return clip;
         }
     }
+
+    public class DeathResource
+    {
+        public DeathsEnum DeathType { get; set; }
+        public Texture2D Texture { get; set; }
+        public AudioClip AudioClip { get; set; }
+        public string FilePath { get; set; }
+
+        public DeathResource(DeathsEnum deathType, Texture2D texture, AudioClip audioClip, string filePath)
+        {
+            this.DeathType = deathType;
+            this.Texture = texture;
+            this.AudioClip = audioClip;
+            this.FilePath = filePath;
+        }
+    }
+
+
 }

@@ -15,13 +15,13 @@ namespace Zeepkist.Deaths
 {
     static class DeathManager
     {
-        public static DeathsEnum deaths = DeathsEnum.Disabled;
+        public static DeathsEnum currentDeathType = DeathsEnum.Disabled;
 
         public static bool isDead = false;
         public static bool isFinished = false;
 
-        public static AudioClip yourDeadAudioClip = null;
-        public static Texture2D yourDeadTexture = null;
+        public static AudioClip deathAudioClip = null;
+        public static Texture2D deathTexture = null;
 
         public static ManualLogSource Logger = BepInEx.Logging.Logger.CreateLogSource("DeathManager");
 
@@ -31,6 +31,8 @@ namespace Zeepkist.Deaths
             RacingApi.Crashed += RacingApi_Crashed;
             RacingApi.PlayerSpawned += RacingApi_PlayerSpawned;
             SceneManager.activeSceneChanged += SceneManager_activeSceneChanged;
+
+            DeathResourceManager.PreLoadDeaths().ContinueWith(t => Console.WriteLine(t.Exception),TaskContinuationOptions.OnlyOnFaulted);
         }
 
         private static void RacingApi_CrossedFinishLine(float time)
@@ -47,9 +49,9 @@ namespace Zeepkist.Deaths
             isFinished = false;
         }
 
-        public async static void RacingApi_Crashed(CrashReason reason)
+        public static void RacingApi_Crashed(CrashReason reason)
         {
-            if (deaths == DeathsEnum.Disabled)
+            if (currentDeathType == DeathsEnum.Disabled)
             {
                 Logger.LogInfo($"Detected crash, but mod is disabled.  Not setting isDead.");
                 return;
@@ -62,17 +64,20 @@ namespace Zeepkist.Deaths
                 return;
             }
 
-            Logger.LogInfo($"Detected crash, playing youdied.mp3 and setting isDead = true");
+            Logger.LogInfo($"Detected crash, getting death resources and setting isDead = true");
             isDead = true;
             isFinished = false;
 
-            AudioClip clip = await DeathResourceManager.GetDeathAudio(deaths);
+            DeathResource deathResource = DeathResourceManager.GetRandomDeath(currentDeathType);
+            deathAudioClip = deathResource.AudioClip;
+            deathTexture = deathResource.Texture;
+
             try
             {
                 AudioManager audioManager = DeathManager.GetOrCreateAudioManager();
-                audioManager.Play(new AudioItemScriptableObject() { Clip = clip, BaseVolume = 1f, Loop = false });
+                audioManager.Play(new AudioItemScriptableObject() { Clip = deathAudioClip, BaseVolume = 1f, Loop = false });
 
-                Logger.LogInfo($"Successfully played youdied.mp3");
+                Logger.LogInfo($"Successfully played audio clip");
             }
             catch (Exception ex)
             {
@@ -90,7 +95,7 @@ namespace Zeepkist.Deaths
 
         public static void OnGui()
         {
-            if (!isDead || deaths == DeathsEnum.Disabled)
+            if (!isDead || currentDeathType == DeathsEnum.Disabled)
             {
                 return;
             }
@@ -103,7 +108,7 @@ namespace Zeepkist.Deaths
             labelStyle.normal.textColor = Color.red;
 
             // Label content
-            GUIContent labelContent = new GUIContent(DeathResourceManager.GetDeathTexture(deaths));
+            GUIContent labelContent = new GUIContent(deathTexture);
 
             // Label location
             Vector2 labelSize = labelStyle.CalcSize(labelContent);

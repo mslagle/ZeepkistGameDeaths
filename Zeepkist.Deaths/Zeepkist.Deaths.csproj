@@ -27,7 +27,7 @@
     <PackageReference Include="BepInEx.Analyzers" Version="1.*" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.*" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
-    <PackageReference Include="Zeepkist.GameLibs" Version="1.0.0-alpha.15.31.351" />
+    <PackageReference Include="Zeepkist.GameLibs" Version="1.0.0-alpha.15.45.538" />
     <PackageReference Include="ZeepSDK" Version="1.*" />
   </ItemGroup>
   
@@ -36,22 +36,40 @@
   </ItemGroup>
   
   <ItemGroup>
-    <None Update="Deaths\darksouls.mp3">
+    <None Update="Resources\darksouls.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Deaths\darksouls.png">
+    <None Update="Resources\darksouls.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Deaths\gta.mp3">
+    <None Update="Resources\gta.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Deaths\gta.png">
+    <None Update="Resources\gta.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Deaths\mk.mp3">
+    <None Update="Resources\mortalkombat.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Deaths\mk.png">
+    <None Update="Resources\mortalkombat.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\scary.0.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\scary.0.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\scary.1.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\scary.1.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\scary.2.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\scary.2.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
