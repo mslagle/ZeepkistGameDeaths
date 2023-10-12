@@ -15,6 +15,7 @@ namespace Zeepkist.Deaths
         private Harmony harmony;
 
         public static ConfigEntry<string> Death { get; private set; }
+        public static ConfigEntry<int> DeathTime { get; private set; }
 
         private void Awake()
         {
@@ -29,19 +30,29 @@ namespace Zeepkist.Deaths
                 new AcceptableValueList<string>(Enum.GetNames(typeof(DeathsEnum)))));
             Plugin.Death.SettingChanged += Death_SettingChanged;
 
+            Plugin.DeathTime = this.Config.Bind<int>("Mod", "Death Time", 5, "Number of seconds of how long death screen stays active");
+            Plugin.DeathTime.SettingChanged += DeathTime_SettingChanged;
+
             DeathManager.Initialize();
-            DeathManager.currentDeathType = Enum.Parse<DeathsEnum>(Plugin.Death.Value);
+            DeathManager.currentDeathType = Enum.Parse<DeathsEnum>(Death.Value);
+            DeathManager.deathTime = DeathTime.Value;
+        }
+
+        private void DeathTime_SettingChanged(object sender, EventArgs e)
+        {
+            Logger.LogInfo($"Mod status changed.  New DeathTime = {DeathTime.Value}");
+            DeathManager.deathTime = DeathTime.Value;
         }
 
         private void Death_SettingChanged(object sender, EventArgs e)
         {
-            Logger.LogInfo($"Mod status changed.  New status = ${Death.Value}");
-            DeathManager.currentDeathType = Enum.Parse<DeathsEnum>(Plugin.Death.Value);
+            Logger.LogInfo($"Mod status changed.  New status = {Death.Value}");
+            DeathManager.currentDeathType = Enum.Parse<DeathsEnum>(Death.Value);
         }
 
         public void OnGUI()
         {
-            if (Enum.Parse<DeathsEnum>(Plugin.Death.Value) != DeathsEnum.Disabled)
+            if (Enum.Parse<DeathsEnum>(Death.Value) != DeathsEnum.Disabled)
             {
                 DeathManager.OnGui();
             }
