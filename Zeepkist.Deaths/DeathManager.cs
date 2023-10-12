@@ -10,6 +10,7 @@ using UnityEngine;
 using ZeepSDK.Racing;
 using Zeepkist.Deaths.Deaths;
 using BepInEx.Logging;
+using Rewired;
 
 namespace Zeepkist.Deaths
 {
@@ -19,6 +20,9 @@ namespace Zeepkist.Deaths
 
         public static bool isDead = false;
         public static bool isFinished = false;
+
+        public static DateTime lastDiedAt = DateTime.MinValue;
+        public static int deathTime = 0;
 
         public static AudioClip deathAudioClip = null;
         public static Texture2D deathTexture = null;
@@ -65,6 +69,7 @@ namespace Zeepkist.Deaths
             }
 
             Logger.LogInfo($"Detected crash, getting death resources and setting isDead = true");
+            lastDiedAt = DateTime.Now;
             isDead = true;
             isFinished = false;
 
@@ -98,6 +103,13 @@ namespace Zeepkist.Deaths
             if (!isDead || currentDeathType == DeathsEnum.Disabled)
             {
                 return;
+            }
+
+            // Only keep death screen up for a set amount of time
+            if (lastDiedAt < DateTime.Now.AddSeconds(-deathTime)){
+                Logger.LogInfo("Time is up for the death screen, setting isDead = false");
+                isDead = false;
+                isFinished = false;
             }
 
             // Label style
